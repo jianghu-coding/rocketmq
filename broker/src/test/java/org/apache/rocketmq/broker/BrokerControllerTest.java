@@ -18,20 +18,57 @@
 package org.apache.rocketmq.broker;
 
 import java.io.File;
+
+import org.apache.commons.lang3.time.DateUtils;
 import org.apache.rocketmq.common.BrokerConfig;
+import org.apache.rocketmq.common.MQVersion;
 import org.apache.rocketmq.common.UtilAll;
 import org.apache.rocketmq.remoting.netty.NettyClientConfig;
 import org.apache.rocketmq.remoting.netty.NettyServerConfig;
+import org.apache.rocketmq.remoting.protocol.RemotingCommand;
+import org.apache.rocketmq.store.config.FlushDiskType;
 import org.apache.rocketmq.store.config.MessageStoreConfig;
 import org.junit.After;
 import org.junit.Ignore;
 import org.junit.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.filter;
 
 public class BrokerControllerTest {
 
-    @Test
+    public static void main(String[] args) throws Exception {
+        testBrokerStart1();
+        Thread.sleep(DateUtils.MILLIS_PER_DAY);
+    }
+
+    private static void testBrokerStart1() throws Exception {
+        System.setProperty(RemotingCommand.REMOTING_VERSION_KEY, Integer.toString(MQVersion.CURRENT_VERSION));
+        final NettyServerConfig nettyServerConfig = new NettyServerConfig();
+        nettyServerConfig.setListenPort(10911);
+
+        final BrokerConfig brokerConfig = new BrokerConfig();
+        brokerConfig.setBrokerName("broker-a");
+        brokerConfig.setNamesrvAddr("127.0.0.1:9876");
+
+        final MessageStoreConfig messageStoreConfig = new MessageStoreConfig();
+        messageStoreConfig.setDeleteWhen("04");
+        messageStoreConfig.setFileReservedTime(48);
+        messageStoreConfig.setFlushDiskType(FlushDiskType.ASYNC_FLUSH);
+        messageStoreConfig.setDuplicationEnable(false);
+
+        BrokerController brokerController = new BrokerController(
+                brokerConfig,
+                nettyServerConfig,
+                new NettyClientConfig(),
+                messageStoreConfig
+        );
+        brokerController.initialize();
+        brokerController.start();
+        System.out.println("broker-a 启动成功");
+    }
+
+    //@Test
     public void testBrokerRestart() throws Exception {
         BrokerController brokerController = new BrokerController(
             new BrokerConfig(),
@@ -43,7 +80,7 @@ public class BrokerControllerTest {
         brokerController.shutdown();
     }
 
-    @After
+    //@After
     public void destroy() {
         UtilAll.deleteFile(new File(new MessageStoreConfig().getStorePathRootDir()));
     }
