@@ -53,6 +53,7 @@ public class BrokerControllerTest {
 
         final MessageStoreConfig messageStoreConfig = new MessageStoreConfig();
         messageStoreConfig.setDeleteWhen("04");
+        messageStoreConfig.setStorePathRootDir("D:\\data\\mq");
         messageStoreConfig.setFileReservedTime(48);
         messageStoreConfig.setFlushDiskType(FlushDiskType.ASYNC_FLUSH);
         messageStoreConfig.setDuplicationEnable(false);
