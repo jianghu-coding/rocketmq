@@ -263,6 +263,7 @@ public class ConsumeMessageConcurrentlyService implements ConsumeMessageService 
     ) {
         int ackIndex = context.getAckIndex();
 
+        // 消息为空直接返回
         if (consumeRequest.getMsgs().isEmpty())
             return;
 
@@ -271,6 +272,7 @@ public class ConsumeMessageConcurrentlyService implements ConsumeMessageService 
                 if (ackIndex >= consumeRequest.getMsgs().size()) {
                     ackIndex = consumeRequest.getMsgs().size() - 1;
                 }
+                // 统计消费成功或者失败的消息
                 int ok = ackIndex + 1;
                 int failed = consumeRequest.getMsgs().size() - ok;
                 this.getConsumerStatsManager().incConsumeOKTPS(consumerGroup, consumeRequest.getMessageQueue().getTopic(), ok);
@@ -285,7 +287,9 @@ public class ConsumeMessageConcurrentlyService implements ConsumeMessageService 
                 break;
         }
 
+        // 处理消费失败的消息
         switch (this.defaultMQPushConsumer.getMessageModel()) {
+            // 广播模式下消费失败只打印warn日志
             case BROADCASTING:
                 for (int i = ackIndex + 1; i < consumeRequest.getMsgs().size(); i++) {
                     MessageExt msg = consumeRequest.getMsgs().get(i);
@@ -293,9 +297,11 @@ public class ConsumeMessageConcurrentlyService implements ConsumeMessageService 
                 }
                 break;
             case CLUSTERING:
+                // 告诉 broker 消息消费失败，便于后续重新消费
                 List<MessageExt> msgBackFailed = new ArrayList<MessageExt>(consumeRequest.getMsgs().size());
                 for (int i = ackIndex + 1; i < consumeRequest.getMsgs().size(); i++) {
                     MessageExt msg = consumeRequest.getMsgs().get(i);
+                    // 发送消费消息失败到 broker
                     boolean result = this.sendMessageBack(msg, context);
                     if (!result) {
                         msg.setReconsumeTimes(msg.getReconsumeTimes() + 1);
@@ -303,6 +309,8 @@ public class ConsumeMessageConcurrentlyService implements ConsumeMessageService 
                     }
                 }
 
+                // 如果上一步发送消息失败
+                // 此处直接提交延迟重新消费
                 if (!msgBackFailed.isEmpty()) {
                     consumeRequest.getMsgs().removeAll(msgBackFailed);
 
@@ -313,6 +321,7 @@ public class ConsumeMessageConcurrentlyService implements ConsumeMessageService 
                 break;
         }
 
+        // 从消息队列中移除消费成功消息，并且更新最新的消费进度
         long offset = consumeRequest.getProcessQueue().removeMessage(consumeRequest.getMsgs());
         if (offset >= 0 && !consumeRequest.getProcessQueue().isDropped()) {
             this.defaultMQPushConsumerImpl.getOffsetStore().updateOffset(consumeRequest.getMessageQueue(), offset, true);
