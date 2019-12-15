@@ -466,6 +466,7 @@ public class DefaultMQProducerImpl implements MQProducerInner {
         send(msg, sendCallback, this.defaultMQProducer.getSendMsgTimeout());
     }
 
+
     /**
      * It will be removed at 4.4.0 cause for exception handling and the wrong Semantics of timeout.
      * A new one will be provided in next version

@@ -197,7 +197,6 @@ public class DefaultMQPushConsumerImpl implements MQConsumerInner {
     }
 
     public void pullMessage(final PullRequest pullRequest) {
-        System.out.println("-----------------------------pullMessage");
         final ProcessQueue processQueue = pullRequest.getProcessQueue();
         if (processQueue.isDropped()) {
             log.info("the pull request[{}] is dropped.", pullRequest.toString());
@@ -296,7 +295,6 @@ public class DefaultMQPushConsumerImpl implements MQConsumerInner {
                     switch (pullResult.getPullStatus()) {
                         case FOUND:
                             // 设置下次拉取消息队列的位置
-                            System.out.println("----------------获取下次拉取的位置");
                             long prevRequestOffset = pullRequest.getNextOffset();
                             pullRequest.setNextOffset(pullResult.getNextBeginOffset());
                             long pullRT = System.currentTimeMillis() - beginTimestamp;

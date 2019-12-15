@@ -565,7 +565,6 @@ public class MQClientAPIImpl {
     ) throws RemotingException, MQBrokerException, InterruptedException {
         RemotingCommand request = RemotingCommand.createRequestCommand(RequestCode.PULL_MESSAGE, requestHeader);
 
-        System.out.println("-------------------------pullMessage--2");
         switch (communicationMode) {
             case ONEWAY:
                 assert false;

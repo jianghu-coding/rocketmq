@@ -20,7 +20,10 @@ import java.util.List;
 import org.apache.rocketmq.client.consumer.DefaultMQPushConsumer;
 import org.apache.rocketmq.client.consumer.listener.ConsumeConcurrentlyContext;
 import org.apache.rocketmq.client.consumer.listener.ConsumeConcurrentlyStatus;
+import org.apache.rocketmq.client.consumer.listener.ConsumeOrderlyContext;
+import org.apache.rocketmq.client.consumer.listener.ConsumeOrderlyStatus;
 import org.apache.rocketmq.client.consumer.listener.MessageListenerConcurrently;
+import org.apache.rocketmq.client.consumer.listener.MessageListenerOrderly;
 import org.apache.rocketmq.client.exception.MQClientException;
 import org.apache.rocketmq.common.consumer.ConsumeFromWhere;
 import org.apache.rocketmq.common.message.MessageExt;
@@ -37,13 +40,23 @@ public class Consumer {
 
         consumer.subscribe("TopicTest", "*");
 
-        consumer.registerMessageListener(new MessageListenerConcurrently() {
+//        consumer.registerMessageListener(new MessageListenerConcurrently() {
+//
+//            @Override
+//            public ConsumeConcurrentlyStatus consumeMessage(List<MessageExt> msgs,
+//                ConsumeConcurrentlyContext context) {
+//                System.out.printf("%s Receive New Messages: %s %n", Thread.currentThread().getName(), msgs);
+//                return ConsumeConcurrentlyStatus.CONSUME_SUCCESS;
+//            }
+//        });
 
+        consumer.registerMessageListener(new MessageListenerOrderly() {
             @Override
-            public ConsumeConcurrentlyStatus consumeMessage(List<MessageExt> msgs,
-                ConsumeConcurrentlyContext context) {
-                System.out.printf("%s Receive New Messages: %s %n", Thread.currentThread().getName(), msgs);
-                return ConsumeConcurrentlyStatus.CONSUME_SUCCESS;
+            public ConsumeOrderlyStatus consumeMessage(List<MessageExt> msgs, ConsumeOrderlyContext context) {
+                for (MessageExt msg: msgs) {
+                    System.out.println("queue:" + msg.getQueueId() + ", content:" + new String(msg.getBody()));
+                }
+                return ConsumeOrderlyStatus.SUCCESS;
             }
         });
         consumer.start();

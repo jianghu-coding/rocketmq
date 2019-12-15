@@ -397,7 +397,6 @@ public abstract class RebalanceImpl {
             }
         }
 
-        System.out.println("----------------------------dispatchPullRequest");
         this.dispatchPullRequest(pullRequestList);
 
         return changed;

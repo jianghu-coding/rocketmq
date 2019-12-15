@@ -18,6 +18,7 @@ package org.apache.rocketmq.example.quickstart;
 
 import org.apache.rocketmq.client.exception.MQClientException;
 import org.apache.rocketmq.client.producer.DefaultMQProducer;
+import org.apache.rocketmq.client.producer.SendCallback;
 import org.apache.rocketmq.client.producer.SendResult;
 import org.apache.rocketmq.common.message.Message;
 import org.apache.rocketmq.remoting.common.RemotingHelper;
@@ -33,7 +34,7 @@ public class Producer {
         producer.setNamesrvAddr("127.0.0.1:9876");
         producer.start();
 
-        for (int i = 0; i < 10; i++) {
+        for (int i = 0; i < 100; i++) {
             try {
 
                 Message msg = new Message("TopicTest" /* Topic */,
@@ -45,13 +46,24 @@ public class Producer {
                  * Call send message to deliver message to one of brokers.
                  */
                 SendResult sendResult = producer.send(msg);
-
                 System.out.printf("%s%n", sendResult);
+//                producer.send(msg, new SendCallback() {
+//                    @Override
+//                    public void onSuccess(SendResult sendResult) {
+//                        System.out.printf("%s%n", sendResult);
+//                    }
+//
+//                    @Override
+//                    public void onException(Throwable e) {
+//                        e.printStackTrace();
+//                    }
+//                });
             } catch (Exception e) {
                 e.printStackTrace();
                 Thread.sleep(1000);
             }
         }
+        Thread.sleep(Integer.MAX_VALUE);
 
         /*
          * Shut down once the producer instance is not longer in use.
